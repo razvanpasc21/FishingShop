@@ -1,0 +1,7 @@
+{
+    "name" : "Undita 4.1m",
+    "description" : "Cea mai tare undita lezgo",
+    "price" : "96.99",
+    "image" : "images/undite/2.png",
+    "quantity" : "20"
+}
