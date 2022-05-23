@@ -1,5 +1,9 @@
 package com.mycompany;
 
+import com.mycompany.cart.AddToCartRequest;
+import com.mycompany.cart.Cart;
+import com.mycompany.cart.ProductInCart;
+import com.mycompany.cart.CartRepository;
 import com.mycompany.product.Product;
 import com.mycompany.product.ProductRepository;
 import com.mycompany.user.LoginRequest;
@@ -7,25 +11,24 @@ import com.mycompany.user.RegisterRequest;
 import com.mycompany.user.User;
 import com.mycompany.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Controller;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class MainController {
     ProductRepository productRepository;
     UserRepository userRepository;
+    CartRepository cartRepository;
 
     @Autowired
-    MainController(ProductRepository productRepository, UserRepository userRepository) {
+    MainController(ProductRepository productRepository, UserRepository userRepository, CartRepository cartRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
     }
 
     @CrossOrigin(origins = "*")
@@ -67,16 +70,16 @@ public class MainController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/login")
-    public String verifyIfUserExists(@RequestBody LoginRequest loginRequest) {
+    public Integer verifyIfUserExists(@RequestBody LoginRequest loginRequest) {
         Iterable<User> usersList = getAllUsers();
         for(User user : usersList) {
             if (user.getEmail().equals(loginRequest.getEmail())) {
                 if (user.getPassword().equals(loginRequest.getPassword())) {
-                    return UUID.randomUUID().toString();
+                    return user.getId();
                 }
             }
         }
-        return "null";
+        return -1;
     }
 
     @CrossOrigin(origins = "*")
@@ -115,6 +118,38 @@ public class MainController {
     @DeleteMapping("/users/{id}")
     public void updateUser(@PathVariable Integer id) {
         userRepository.deleteById(id);
+    }
+
+    @CrossOrigin(origins = "*")
+    @PostMapping("/cart")
+    public ProductInCart addToCart(@RequestBody AddToCartRequest addToCartRequest) {
+        ProductInCart productInCart = new ProductInCart();
+        productInCart.setProductId(addToCartRequest.getProductId());
+        productInCart.setUserId(addToCartRequest.getUserId());
+        ProductInCart testProductInCart = cartRepository.save(productInCart);
+
+        return testProductInCart;
+    }
+
+    @CrossOrigin(origins = "*")
+    @GetMapping("/cart")
+    public Cart getCart(@RequestParam Integer userId) {
+        Iterable<ProductInCart> allProductsInCarts = cartRepository.findAll();
+        List<Product> products = new ArrayList<>();
+        Double totalCartPrice = 0.0;
+        for(ProductInCart productInCart : allProductsInCarts) {
+            if(productInCart.getUserId() == userId) {
+                Product product = productRepository.findById((productInCart.getProductId())).get();
+                products.add(product);
+                totalCartPrice += product.getPrice();
+            }
+        }
+        Cart cart = new Cart();
+        cart.setUserId(userId);
+        cart.setProductList(products);
+        cart.setTotalPrice(totalCartPrice);
+
+        return cart;
     }
 
     @CrossOrigin(origins = "*")
