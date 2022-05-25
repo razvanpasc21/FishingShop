@@ -15,6 +15,8 @@ public class User {
     private String email;
     private String password;
     private boolean gender;
+    private Double balance;
+    private Integer isAdmin;
 
 
     public Integer getId() {
@@ -63,5 +65,21 @@ public class User {
 
     public void setGender(boolean gender) {
         this.gender = gender;
+    }
+
+    public Double getBalance() {
+        return balance;
+    }
+
+    public void setBalance(Double balance) {
+        this.balance = balance;
+    }
+
+    public Integer getAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(Integer admin) {
+        isAdmin = admin;
     }
 }
